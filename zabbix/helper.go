@@ -72,6 +72,10 @@ func createRetry(d *schema.ResourceData, meta interface{}, create createFunc, cr
 			d.SetId(id)
 		}
 
-		return resource.NonRetryableError(read(d, meta))
+		err = read(d, meta)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 }
