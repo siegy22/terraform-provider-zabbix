@@ -1,4 +1,4 @@
-module github.com/elastic-infra/terraform-provider-zabbix
+module github.com/claranet/terraform-provider-zabbix
 
 go 1.16
 
