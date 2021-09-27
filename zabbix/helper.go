@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func sqlError(err error) bool {
@@ -72,6 +72,10 @@ func createRetry(d *schema.ResourceData, meta interface{}, create createFunc, cr
 			d.SetId(id)
 		}
 
-		return resource.NonRetryableError(read(d, meta))
+		err = read(d, meta)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 }

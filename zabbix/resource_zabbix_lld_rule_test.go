@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccZabbixLLDRule_Basic(t *testing.T) {
@@ -29,10 +29,10 @@ func TestAccZabbixLLDRule_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "name", "test_low_level_discovery_rule"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "type", "0"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.#", "1"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.3189296381.#", "0"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.3189296381.condition.23998414.macro", "{#TESTMACRO}"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.3189296381.condition.23998414.value", "^lo$"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.3189296381.condition.23998414.operator", "8"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.#", "1"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.0.macro", "{#TESTMACRO}"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.0.value", "^lo$"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.0.operator", "8"),
 				),
 			},
 			{
@@ -44,9 +44,9 @@ func TestAccZabbixLLDRule_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "name", "test_low_level_discovery_rule_update"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "type", "0"),
 					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.#", "1"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.1755271774.#", "0"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.1755271774.condition.1739239139.macro", "{#UPDATE}"),
-					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.1755271774.condition.1739239139.value", "^lo$"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.#", "1"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.0.macro", "{#UPDATE}"),
+					resource.TestCheckResourceAttr("zabbix_lld_rule.lld_rule_test", "filter.0.condition.0.value", "^lo$"),
 				),
 			},
 		},

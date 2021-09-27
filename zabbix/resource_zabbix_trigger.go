@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/claranet/go-zabbix-api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceZabbixTrigger() *schema.Resource {
@@ -98,11 +98,7 @@ func resourceZabbixTriggerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("comment", trigger.Comments)
 	}
 	d.Set("priority", trigger.Priority)
-	if trigger.Status != 0 {
-		d.Set("status", trigger.Status)
-	} else {
-		d.Set("value", 0)
-	}
+	d.Set("status", trigger.Status)
 
 	var dependencies []string
 	for _, dependencie := range trigger.Dependencies {
