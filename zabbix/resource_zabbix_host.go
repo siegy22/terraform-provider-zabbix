@@ -336,8 +336,9 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Will read host with id %s", d.Id())
 
 	hosts, err := api.HostsGet(zabbix.Params{
-		"hostids":          d.Id(),
-		"selectInterfaces": "extend",
+		"hostids":               d.Id(),
+		"selectInterfaces":      "extend",
+		"selectParentTemplates": []string{"name"},
 	})
 
 	if err != nil {
@@ -368,26 +369,20 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("interfaces", interfaces)
 
+	templateNames := make([]string, len(host.Templates))
+
+	for i, t := range host.Templates {
+		templateNames[i] = t.Name
+	}
+
+	d.Set("templates", templateNames)
+
 	params := zabbix.Params{
-		"output": "extend",
+		"output": []string{"name"},
 		"hostids": []string{
 			d.Id(),
 		},
 	}
-
-	templates, err := api.TemplatesGet(params)
-
-	if err != nil {
-		return err
-	}
-
-	templateNames := make([]string, len(templates))
-
-	for i, t := range templates {
-		templateNames[i] = t.Host
-	}
-
-	d.Set("templates", templateNames)
 
 	groups, err := api.HostGroupsGet(params)
 
