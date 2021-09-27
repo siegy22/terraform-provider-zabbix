@@ -254,10 +254,9 @@ var actionOperationCommandSchema = &schema.Resource{
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		"script": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Not Implemented.",
+		"script_id": {
+			Type:     schema.TypeString,
+			Optional: true,
 		},
 		"target": {
 			Type:     schema.TypeSet,
@@ -302,11 +301,10 @@ var actionOperationMessageSchema = &schema.Resource{
 			// FIXME: default true on Zabbix 5.0 or later
 			Default: false,
 		},
-		"media_type": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "0", // NOTE: ALL
-			Description: "Not Implemented.",
+		"media_type_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "0", // NOTE: ALL
 		},
 		"subject": {
 			Type:     schema.TypeString,
@@ -807,7 +805,6 @@ func createActionOperationCommand(id string, lst []interface{}, api *zabbix.API)
 	}
 	m := lst[0].(map[string]interface{})
 
-	// FIXME: implement script
 	cmd = &zabbix.ActionOperationCommand{
 		OperationID: id,
 		Type:        StringActionOperationCommandTypeMap[m["type"].(string)],
@@ -819,6 +816,7 @@ func createActionOperationCommand(id string, lst []interface{}, api *zabbix.API)
 		Port:        m["port"].(string),
 		PrivateKey:  m["private_key_file"].(string),
 		PublicKey:   m["public_key_file"].(string),
+		ScriptID:    m["script_id"].(string),
 	}
 
 	targets := m["target"].(*schema.Set).List()
@@ -943,11 +941,10 @@ func createActionOperationMessage(id string, lst []interface{}, api *zabbix.API)
 		defMsg = "1"
 	}
 
-	// FIXME: implement MediaTypeID
 	msg = &zabbix.ActionOperationMessage{
 		OperationID:    id,
 		DefaultMessage: defMsg,
-		MediaTypeID:    "0",
+		MediaTypeID:    m["media_type_id"].(string),
 		Message:        m["message"].(string),
 		Subject:        m["subject"].(string),
 	}
@@ -1176,7 +1173,7 @@ func readActionOperationCommands(op zabbix.ActionOperation, api *zabbix.API) (ls
 	m["port"] = op.Command.Port
 	m["private_key_file"] = op.Command.PrivateKey
 	m["public_key_file"] = op.Command.PublicKey
-	m["script"] = op.Command.ScriptID
+	m["script_id"] = op.Command.ScriptID
 
 	target, err := readActionOperationCommandTargets(op, api)
 	if err != nil {
@@ -1286,7 +1283,7 @@ func readActionOperationMessages(op zabbix.ActionOperation, api *zabbix.API) (ls
 
 	m := map[string]interface{}{}
 	m["default_message"] = op.Message.DefaultMessage == "1"
-	m["media_type"] = op.Message.MediaTypeID
+	m["media_type_id"] = op.Message.MediaTypeID
 	m["subject"] = op.Message.Subject
 	m["message"] = op.Message.Message
 
