@@ -1,10 +1,9 @@
-module github.com/elastic-infra/terraform-provider-zabbix
+module github.com/claranet/terraform-provider-zabbix
 
 go 1.16
 
 require (
 	github.com/claranet/go-zabbix-api v1.0.0
-	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.8.0
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2
 )
