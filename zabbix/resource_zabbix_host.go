@@ -29,34 +29,28 @@ var interfaceSchema *schema.Resource = &schema.Resource{
 		"dns": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			ForceNew: true,
 		},
 		"ip": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			ForceNew: true,
 		},
 		"main": &schema.Schema{
 			Type:     schema.TypeBool,
 			Required: true,
-			ForceNew: true,
 		},
 		"port": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "10050",
-			ForceNew: true,
 		},
 		"type": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "agent",
-			ForceNew: true,
 		},
 		"interface_id": &schema.Schema{
 			Type:     schema.TypeString,
 			Computed: true,
-			ForceNew: true,
 		},
 	},
 }
@@ -79,7 +73,6 @@ func resourceZabbixHost() *schema.Resource {
 			"host_id": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
-				ForceNew:    true,
 				Description: "(readonly) ID of the host",
 			},
 			"name": &schema.Schema{
@@ -94,14 +87,10 @@ func resourceZabbixHost() *schema.Resource {
 				Default:  true,
 				Optional: true,
 			},
-			//any changes to interface will trigger recreate, zabbix api kinda doesn't
-			//work nicely, interface can get linked to various things and replacement
-			//simply doesn't work
 			"interfaces": &schema.Schema{
 				Type:     schema.TypeList,
 				Elem:     interfaceSchema,
 				Required: true,
-				ForceNew: true,
 			},
 			"groups": &schema.Schema{
 				Type:     schema.TypeSet,
@@ -133,6 +122,7 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 			return nil, fmt.Errorf("%s isnt valid interface type", interfaceType)
 		}
 
+		interfaceId := d.Get(prefix + "interface_id").(string)
 		ip := d.Get(prefix + "ip").(string)
 		dns := d.Get(prefix + "dns").(string)
 
@@ -153,12 +143,13 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 		}
 
 		interfaces[i] = zabbix.HostInterface{
-			IP:    ip,
-			DNS:   dns,
-			Main:  main,
-			Port:  d.Get(prefix + "port").(string),
-			Type:  typeID,
-			UseIP: useip,
+			InterfaceID: interfaceId,
+			DNS:         dns,
+			IP:          ip,
+			Main:        main,
+			Port:        d.Get(prefix + "port").(string),
+			Type:        typeID,
+			UseIP:       useip,
 		}
 	}
 
@@ -334,10 +325,9 @@ func resourceZabbixHostCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Created host id is %s", hosts[0].HostID)
 
-	d.Set("host_id", hosts[0].HostID)
 	d.SetId(hosts[0].HostID)
 
-	return nil
+	return resourceZabbixHostRead(d, meta)
 }
 
 func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
@@ -427,10 +417,6 @@ func resourceZabbixHostUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	host.HostID = d.Id()
 
-	//interfaces can't be updated, changes will trigger recreate
-	//sending previous values will also fail the update
-	host.Interfaces = nil
-
 	hosts := zabbix.Hosts{*host}
 
 	err = api.HostsUpdate(hosts)
@@ -441,7 +427,7 @@ func resourceZabbixHostUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Created host id is %s", hosts[0].HostID)
 
-	return nil
+	return resourceZabbixHostRead(d, meta)
 }
 
 func resourceZabbixHostDelete(d *schema.ResourceData, meta interface{}) error {
