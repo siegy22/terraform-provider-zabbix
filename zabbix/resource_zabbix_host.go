@@ -17,6 +17,13 @@ var HostInterfaceTypes = map[string]zabbix.InterfaceType{
 	"jmx":   4,
 }
 
+var HostInterfaceTypeStrings = map[zabbix.InterfaceType]string{
+	zabbix.Agent: "agent",
+	zabbix.SNMP:  "snmp",
+	zabbix.IPMI:  "ipmi",
+	zabbix.JMX:   "jmx",
+}
+
 var interfaceSchema *schema.Resource = &schema.Resource{
 	Schema: map[string]*schema.Schema{
 		"dns": &schema.Schema{
@@ -338,12 +345,16 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Will read host with id %s", d.Id())
 
-	host, err := api.HostGetByID(d.Id())
+	hosts, err := api.HostsGet(zabbix.Params{
+		"hostids":          d.Id(),
+		"selectInterfaces": "extend",
+	})
 
 	if err != nil {
 		return err
 	}
 
+	host := hosts[0]
 	log.Printf("[DEBUG] Host name is %s", host.Name)
 
 	d.Set("host", host.Host)
@@ -351,6 +362,21 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", host.Name)
 
 	d.Set("monitored", host.Status == 0)
+
+	interfaces := make([]map[string]interface{}, len(host.Interfaces))
+
+	for i, ifa := range host.Interfaces {
+		interfaces[i] = map[string]interface{}{
+			"interface_id": ifa.InterfaceID,
+			"dns":          ifa.DNS,
+			"ip":           ifa.IP,
+			"main":         ifa.Main == 1,
+			"port":         ifa.Port,
+			"type":         HostInterfaceTypeStrings[ifa.Type],
+		}
+	}
+
+	d.Set("interfaces", interfaces)
 
 	params := zabbix.Params{
 		"output": "extend",
