@@ -15,6 +15,9 @@ func resourceZabbixHostGroup() *schema.Resource {
 		Exists: resourceZabbixHostGroupExists,
 		Update: resourceZabbixHostGroupUpdate,
 		Delete: resourceZabbixHostGroupDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
@@ -65,6 +68,7 @@ func resourceZabbixHostGroupRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", group.Name)
+	d.Set("group_id", group.GroupID)
 
 	return nil
 }

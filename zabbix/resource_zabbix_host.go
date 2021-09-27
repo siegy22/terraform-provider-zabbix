@@ -60,6 +60,9 @@ func resourceZabbixHost() *schema.Resource {
 		Read:   resourceZabbixHostRead,
 		Update: resourceZabbixHostUpdate,
 		Delete: resourceZabbixHostDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"host": &schema.Schema{
 				Type:        schema.TypeString,
@@ -333,9 +336,9 @@ func resourceZabbixHostCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(*zabbix.API)
 
-	log.Printf("[DEBUG] Will read host with id %s", d.Get("host_id").(string))
+	log.Printf("[DEBUG] Will read host with id %s", d.Id())
 
-	host, err := api.HostGetByID(d.Get("host_id").(string))
+	host, err := api.HostGetByID(d.Id())
 
 	if err != nil {
 		return err
@@ -344,6 +347,7 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Host name is %s", host.Name)
 
 	d.Set("host", host.Host)
+	d.Set("host_id", host.HostID)
 	d.Set("name", host.Name)
 
 	d.Set("monitored", host.Status == 0)
