@@ -18,21 +18,21 @@ Requirements
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/elastic-infra/terraform-provider-zabbix`
+Clone repository to: `$GOPATH/src/github.com/claranet/terraform-provider-zabbix`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/elastic-infra; cd $GOPATH/src/github.com/elastic-infra
+$ mkdir -p $GOPATH/src/github.com/claranet; cd $GOPATH/src/github.com/claranet
 $ git clone git@github.com:elastic-infra/terraform-provider-zabbix
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/elastic-infra/terraform-provider-zabbix
+$ cd $GOPATH/src/github.com/claranet/terraform-provider-zabbix
 $ make build
 ```
 
-**Note**: For contributions created from forks, the repository should still be cloned under the `$GOPATH/src/github.com/elastic-infra/terraform-provider-zabbix` directory to allow the provided `make` commands to properly run, build, and test this project.
+**Note**: For contributions created from forks, the repository should still be cloned under the `$GOPATH/src/github.com/claranet/terraform-provider-zabbix` directory to allow the provided `make` commands to properly run, build, and test this project.
 
 Using the provider
 ------------------
