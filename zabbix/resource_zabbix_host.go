@@ -139,7 +139,7 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 		main := 1
 
 		if !d.Get(prefix + "main").(bool) {
-			main = 1
+			main = 0
 		}
 
 		interfaces[i] = zabbix.HostInterface{
