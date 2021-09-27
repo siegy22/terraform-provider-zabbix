@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,39 +18,40 @@ var HostInterfaceTypes = map[string]zabbix.InterfaceType{
 	"jmx":   4,
 }
 
+var HostInterfaceTypeStrings = map[zabbix.InterfaceType]string{
+	zabbix.Agent: "agent",
+	zabbix.SNMP:  "snmp",
+	zabbix.IPMI:  "ipmi",
+	zabbix.JMX:   "jmx",
+}
+
 var interfaceSchema *schema.Resource = &schema.Resource{
 	Schema: map[string]*schema.Schema{
 		"dns": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			ForceNew: true,
 		},
 		"ip": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			ForceNew: true,
 		},
 		"main": &schema.Schema{
 			Type:     schema.TypeBool,
 			Required: true,
-			ForceNew: true,
 		},
 		"port": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "10050",
-			ForceNew: true,
 		},
 		"type": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "agent",
-			ForceNew: true,
 		},
 		"interface_id": &schema.Schema{
 			Type:     schema.TypeString,
 			Computed: true,
-			ForceNew: true,
 		},
 	},
 }
@@ -72,7 +74,6 @@ func resourceZabbixHost() *schema.Resource {
 			"host_id": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
-				ForceNew:    true,
 				Description: "(readonly) ID of the host",
 			},
 			"name": &schema.Schema{
@@ -87,14 +88,10 @@ func resourceZabbixHost() *schema.Resource {
 				Default:  true,
 				Optional: true,
 			},
-			//any changes to interface will trigger recreate, zabbix api kinda doesn't
-			//work nicely, interface can get linked to various things and replacement
-			//simply doesn't work
 			"interfaces": &schema.Schema{
 				Type:     schema.TypeList,
 				Elem:     interfaceSchema,
 				Required: true,
-				ForceNew: true,
 			},
 			"groups": &schema.Schema{
 				Type:     schema.TypeSet,
@@ -105,6 +102,12 @@ func resourceZabbixHost() *schema.Resource {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
+			},
+			"macro": &schema.Schema{
+				Type:        schema.TypeMap,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Optional:    true,
+				Description: "User macros for the host.",
 			},
 		},
 	}
@@ -126,6 +129,7 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 			return nil, fmt.Errorf("%s isnt valid interface type", interfaceType)
 		}
 
+		interfaceId := d.Get(prefix + "interface_id").(string)
 		ip := d.Get(prefix + "ip").(string)
 		dns := d.Get(prefix + "dns").(string)
 
@@ -142,16 +146,17 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 		main := 1
 
 		if !d.Get(prefix + "main").(bool) {
-			main = 1
+			main = 0
 		}
 
 		interfaces[i] = zabbix.HostInterface{
-			IP:    ip,
-			DNS:   dns,
-			Main:  main,
-			Port:  d.Get(prefix + "port").(string),
-			Type:  typeID,
-			UseIP: useip,
+			InterfaceID: interfaceId,
+			DNS:         dns,
+			IP:          ip,
+			Main:        main,
+			Port:        d.Get(prefix + "port").(string),
+			Type:        typeID,
+			UseIP:       useip,
 		}
 	}
 
@@ -270,6 +275,20 @@ func getTemplates(d *schema.ResourceData, api *zabbix.API) (zabbix.TemplateIDs, 
 	return hostTemplates, nil
 }
 
+func getHostMacro(d *schema.ResourceData) zabbix.Macros {
+	var macros zabbix.Macros
+
+	terraformMacros := d.Get("macro").(map[string]interface{})
+	for i, terraformMacro := range terraformMacros {
+		macro := zabbix.Macro{
+			MacroName: fmt.Sprintf("{$%s}", i),
+			Value:     terraformMacro.(string),
+		}
+		macros = append(macros, macro)
+	}
+	return macros
+}
+
 func createHostObj(d *schema.ResourceData, api *zabbix.API) (*zabbix.Host, error) {
 	host := zabbix.Host{
 		Host:   d.Get("host").(string),
@@ -305,6 +324,9 @@ func createHostObj(d *schema.ResourceData, api *zabbix.API) (*zabbix.Host, error
 	}
 
 	host.TemplateIDs = templates
+
+	host.UserMacros = getHostMacro(d)
+
 	return &host, nil
 }
 
@@ -327,10 +349,9 @@ func resourceZabbixHostCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Created host id is %s", hosts[0].HostID)
 
-	d.Set("host_id", hosts[0].HostID)
 	d.SetId(hosts[0].HostID)
 
-	return nil
+	return resourceZabbixHostRead(d, meta)
 }
 
 func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
@@ -338,12 +359,18 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Will read host with id %s", d.Id())
 
-	host, err := api.HostGetByID(d.Id())
+	hosts, err := api.HostsGet(zabbix.Params{
+		"hostids":               d.Id(),
+		"selectInterfaces":      "extend",
+		"selectParentTemplates": []string{"name"},
+		"selectMacros":          "extend",
+	})
 
 	if err != nil {
 		return err
 	}
 
+	host := hosts[0]
 	log.Printf("[DEBUG] Host name is %s", host.Name)
 
 	d.Set("host", host.Host)
@@ -352,26 +379,54 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("monitored", host.Status == 0)
 
+	interfaces := make([]map[string]interface{}, len(host.Interfaces))
+
+	for i, ifa := range host.Interfaces {
+		interfaces[i] = map[string]interface{}{
+			"interface_id": ifa.InterfaceID,
+			"dns":          ifa.DNS,
+			"ip":           ifa.IP,
+			"main":         ifa.Main == 1,
+			"port":         ifa.Port,
+			"type":         HostInterfaceTypeStrings[ifa.Type],
+		}
+	}
+
+	d.Set("interfaces", interfaces)
+
+	templateNames := make([]string, len(host.Templates))
+
+	for i, t := range host.Templates {
+		templateNames[i] = t.Name
+	}
+
+	d.Set("templates", templateNames)
+
+	macros := make(map[string]interface{}, len(host.UserMacros))
+
+	for _, macro := range host.UserMacros {
+		var name string
+		if noPrefix := strings.Split(macro.MacroName, "{$"); len(noPrefix) == 2 {
+			name = noPrefix[1]
+		} else {
+			return fmt.Errorf("Invalid macro name \"%s\"", macro.MacroName)
+		}
+		if noSuffix := strings.Split(name, "}"); len(noSuffix) == 2 {
+			name = noSuffix[0]
+		} else {
+			return fmt.Errorf("Invalid macro name \"%s\"", macro.MacroName)
+		}
+		macros[name] = macro.Value
+	}
+
+	d.Set("macro", macros)
+
 	params := zabbix.Params{
-		"output": "extend",
+		"output": []string{"name"},
 		"hostids": []string{
 			d.Id(),
 		},
 	}
-
-	templates, err := api.TemplatesGet(params)
-
-	if err != nil {
-		return err
-	}
-
-	templateNames := make([]string, len(templates))
-
-	for i, t := range templates {
-		templateNames[i] = t.Host
-	}
-
-	d.Set("templates", templateNames)
 
 	groups, err := api.HostGroupsGet(params)
 
@@ -401,10 +456,6 @@ func resourceZabbixHostUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	host.HostID = d.Id()
 
-	//interfaces can't be updated, changes will trigger recreate
-	//sending previous values will also fail the update
-	host.Interfaces = nil
-
 	hosts := zabbix.Hosts{*host}
 
 	err = api.HostsUpdate(hosts)
@@ -415,7 +466,7 @@ func resourceZabbixHostUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Created host id is %s", hosts[0].HostID)
 
-	return nil
+	return resourceZabbixHostRead(d, meta)
 }
 
 func resourceZabbixHostDelete(d *schema.ResourceData, meta interface{}) error {
