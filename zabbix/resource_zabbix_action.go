@@ -722,9 +722,9 @@ func createActionObject(d *schema.ResourceData, api *zabbix.API) (*zabbix.Action
 	// NOTE: pause_suppressed set only TriggerEvent
 	if eventSource == zabbix.TriggerEvent {
 		if d.Get("pause_in_maintenance_periods").(bool) {
-			action.PauseSuppressed = zabbix.Pause
+			action.PauseSuppressed = pauseType(zabbix.Pause)
 		} else {
-			action.PauseSuppressed = zabbix.DontPause
+			action.PauseSuppressed = pauseType(zabbix.DontPause)
 		}
 	}
 
@@ -893,8 +893,8 @@ func createActionOperationCommand(id string, lst []interface{}, api *zabbix.API)
 		OperationID: id,
 		Type:        StringActionOperationCommandTypeMap[m["type"].(string)],
 		Command:     m["command"].(string),
-		AuthType:    StringActionOperationCommandAuthTypeMap[m["auth_type"].(string)],
-		ExecuteOn:   StringActionOperationCommandExecutorTypeMap[m["execute_on"].(string)],
+		AuthType:    actionOperationCommandAuthType(m["auth_type"].(string)),
+		ExecuteOn:   actionOperationCommandExecutorType(m["execute_on"].(string)),
 		Username:    m["username"].(string),
 		Password:    m["password"].(string),
 		Port:        m["port"].(string),
@@ -1164,7 +1164,7 @@ func resourceZabbixActionRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("update_subject", action.AckSubject)
 	d.Set("update_message", action.AckMessage)
 	d.Set("enabled", action.Status == zabbix.Enabled)
-	d.Set("pause_in_maintenance_periods", action.PauseSuppressed == zabbix.Pause)
+	d.Set("pause_in_maintenance_periods", pauseTypeValue(action.PauseSuppressed) == zabbix.Pause)
 	d.Set("calculation", ActionEvaluationTypeStringMap[action.Filter.EvaluationType])
 	d.Set("formula", action.Filter.EvaluationType)
 
@@ -1314,8 +1314,8 @@ func readActionOperationCommands(
 
 	m := map[string]interface{}{}
 	m["type"] = ActionOperationCommandTypeStringMap[cmd.Type]
-	m["auth_type"] = ActionOperationCommandAuthTypeStringMap[cmd.AuthType]
-	m["execute_on"] = ActionOperationCommandExecutorTypeStringMap[cmd.ExecuteOn]
+	m["auth_type"] = actionOperationCommandAuthTypeString(cmd.AuthType)
+	m["execute_on"] = actionOperationCommandExecutorTypeString(cmd.ExecuteOn)
 	m["command"] = cmd.Command
 	m["username"] = cmd.Username
 	m["password"] = cmd.Password
@@ -1583,4 +1583,45 @@ func resourceZabbixActionDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
+}
+
+func pauseType(v zabbix.PauseType) *zabbix.PauseType {
+	return &v
+}
+
+func pauseTypeValue(v *zabbix.PauseType) zabbix.PauseType {
+	if v != nil {
+		return *v
+	}
+	return zabbix.DontPause
+}
+
+func actionOperationCommandAuthType(v string) *zabbix.ActionOperationCommandAuthType {
+	authType := StringActionOperationCommandAuthTypeMap[v]
+	return &authType
+}
+
+func actionOperationCommandAuthTypeString(v *zabbix.ActionOperationCommandAuthType) string {
+	var authType zabbix.ActionOperationCommandAuthType
+	if v != nil {
+		authType = *v
+	} else {
+		authType = zabbix.Password
+	}
+	return ActionOperationCommandAuthTypeStringMap[authType]
+}
+
+func actionOperationCommandExecutorType(v string) *zabbix.ActionOperationCommandExecutorType {
+	executorType := StringActionOperationCommandExecutorTypeMap[v]
+	return &executorType
+}
+
+func actionOperationCommandExecutorTypeString(v *zabbix.ActionOperationCommandExecutorType) string {
+	var executorType zabbix.ActionOperationCommandExecutorType
+	if v != nil {
+		executorType = *v
+	} else {
+		executorType = zabbix.AgentExecutor
+	}
+	return ActionOperationCommandExecutorTypeStringMap[executorType]
 }
