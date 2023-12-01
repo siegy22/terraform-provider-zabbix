@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/claranet/go-zabbix-api v1.0.0
+	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.8.0
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2
@@ -33,7 +34,6 @@ require (
 	github.com/hashicorp/go-plugin v1.4.1 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
-	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.8.2 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.14.0 // indirect
@@ -72,4 +72,4 @@ require (
 	google.golang.org/protobuf v1.25.0 // indirect
 )
 
-replace github.com/claranet/go-zabbix-api v1.0.0 => github.com/elastic-infra/go-zabbix-api v1.2.0
+replace github.com/claranet/go-zabbix-api v1.0.0 => github.com/elastic-infra/go-zabbix-api v1.3.0
