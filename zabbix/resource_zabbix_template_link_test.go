@@ -175,7 +175,7 @@ func testAccZabbixTemplateLinkConfig(groupName, templateName string) string {
 
 		resource "zabbix_trigger" "trigger_test_0" {
 			description = "trigger_test_0"
-			expression  = "{${zabbix_template.template_test.host}:${zabbix_item.item_test_0.key}.last()} = 0"
+			expression  = "last(/${zabbix_template.template_test.host}/${zabbix_item.item_test_0.key}) = 0"
 			priority    = 5
 		}
 
@@ -255,7 +255,7 @@ func testAccZabbixTemplateLinkCreateServerTrigger(template zabbix.Template, item
 	return func() {
 		api := testAccProvider.Meta().(*zabbix.API)
 
-		trigger.Expression = fmt.Sprintf("{%s:%s.last()} = 0", template.Host, item.Key)
+		trigger.Expression = fmt.Sprintf("last(/%s/%s) = 0", template.Host, item.Key)
 		triggers := zabbix.Triggers{*trigger}
 		err := api.TriggersCreate(triggers)
 		if err != nil {

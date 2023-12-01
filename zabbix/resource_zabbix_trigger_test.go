@@ -23,7 +23,7 @@ func TestAccZabbixTrigger_Basic(t *testing.T) {
 				Config: testAccZabbixTriggerSimpleConfig(strID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.last()}=0", strID)),
+					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("last(/template_%s/lili.lala)=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "trigger_comment"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "5"),
 					resource.TestCheckResourceAttr(resourceName, "status", "1"),
@@ -33,7 +33,7 @@ func TestAccZabbixTrigger_Basic(t *testing.T) {
 				Config: testAccZabbixTriggerSimpleConfigUpdate(strID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min(1)}=0", strID)),
+					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("min(/template_%s/lili.lala,1)=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "update_trigger_comment"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "0"),
 					resource.TestCheckResourceAttr(resourceName, "status", "0"),
@@ -43,7 +43,7 @@ func TestAccZabbixTrigger_Basic(t *testing.T) {
 				Config: testAccZabbixTriggerOmitEmpty(strID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min(1)}=0", strID)),
+					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("min(/template_%s/lili.lala,1)=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", ""),
 					resource.TestCheckResourceAttr(resourceName, "priority", "0"),
 					resource.TestCheckResourceAttr(resourceName, "status", "0"),
@@ -67,7 +67,7 @@ func TestAccZabbixTrigger_BasicMacro(t *testing.T) {
 				Config: testAccZabbixTriggerMacroConfig(strID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min({$MACRO_TRIGGER})}=0", strID)),
+					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("min(/template_%s/lili.lala,{$MACRO_TRIGGER})=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "trigger_comment"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "5"),
 					resource.TestCheckResourceAttr(resourceName, "status", "1"),
@@ -77,7 +77,7 @@ func TestAccZabbixTrigger_BasicMacro(t *testing.T) {
 				Config: testAccZabbixTriggerMacroConfigUpdate(strID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("update_trigger_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.min({$MACRO_UPDATE})}=0", strID)),
+					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("min(/template_%s/lili.lala,{$MACRO_UPDATE})=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "comment", "update_trigger_comment"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "3"),
 					resource.TestCheckResourceAttr(resourceName, "status", "0"),
@@ -100,7 +100,7 @@ func TestAccZabbixTrigger_BasicDependencies(t *testing.T) {
 				Config: testAccZabbixTriggerDependencies(strID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("trigger_3_%s", strID)),
-					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("{template_%s:lili.lala.last()}=0", strID)),
+					resource.TestCheckResourceAttr(resourceName, "expression", fmt.Sprintf("last(/template_%s/lili.lala)=0", strID)),
 					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "2"),
 				),
 			},
@@ -159,7 +159,7 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 
 	resource "zabbix_trigger" "trigger_test" {
 		description = "trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
+		expression = "last(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key})=0"
 		comment = "trigger_comment"
 		priority = 5
 		status = 1
@@ -194,7 +194,7 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 
 	resource "zabbix_trigger" "trigger_test" {
 		description = "update_trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min(1)}=0"
+		expression = "min(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key},1)=0"
 		comment = "update_trigger_comment"
 		priority = 0
 		status = 0
@@ -231,7 +231,7 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 
 	resource "zabbix_trigger" "trigger_test" {
 		description = "update_trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min(1)}=0"
+		expression = "min(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key},1)=0"
 	}`, strID, strID, strID, strID)
 }
 
@@ -269,7 +269,7 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 
 	resource "zabbix_trigger" "trigger_test" {
 		description = "trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min({$MACRO_TRIGGER})}=0"
+		expression = "min(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key},{$MACRO_TRIGGER})=0"
 		comment = "trigger_comment"
 		priority = 5
 		status = 1
@@ -310,7 +310,7 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 
 	resource "zabbix_trigger" "trigger_test" {
 		description = "update_trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.min({$MACRO_UPDATE})}=0"
+		expression = "min(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key},{$MACRO_UPDATE})=0"
 		comment = "update_trigger_comment"
 		priority = 3
 		status = 0
@@ -347,17 +347,17 @@ func testAccZabbixTriggerDependencies(strID string) string {
 
 	resource "zabbix_trigger" "trigger_test" {
 		description = "trigger_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
+		expression = "last(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key})=0"
 	}
 
 	resource "zabbix_trigger" "trigger_test_2" {
 		description = "trigger_2_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
+		expression = "last(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key})=0"
 	}
 
 	resource "zabbix_trigger" "trigger_test_3" {
 		description = "trigger_3_%s"
-		expression = "{${zabbix_template.template_test.host}:${zabbix_item.item_test.key}.last()}=0"
+		expression = "last(/${zabbix_template.template_test.host}/${zabbix_item.item_test.key})=0"
 		dependencies = [
 			zabbix_trigger.trigger_test.id,
 			zabbix_trigger.trigger_test_2.id,

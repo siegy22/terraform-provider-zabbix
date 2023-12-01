@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -180,7 +181,12 @@ func getTriggerExpression(trigger *zabbix.Trigger, api *zabbix.API) error {
 			return fmt.Errorf("Expected one parent host for item with id %s, and got : %d", function.ItemID, len(item.ItemParent))
 		}
 		idstr := fmt.Sprintf("{%s}", function.FunctionID)
-		expendValue := fmt.Sprintf("{%s:%s.%s(%s)}", item.ItemParent[0].Host, item.Key, function.Function, function.Parameter)
+		var expendValue string
+		if api.ServerVersion.GreaterThanOrEqual(version.Must(version.NewVersion("5.4"))) {
+			expendValue = fmt.Sprintf("%s(/%s/%s%s)", function.Function, item.ItemParent[0].Host, item.Key, function.Parameter[1:])
+		} else {
+			expendValue = fmt.Sprintf("{%s:%s.%s(%s)}", item.ItemParent[0].Host, item.Key, function.Function, function.Parameter)
+		}
 		trigger.Expression = strings.Replace(trigger.Expression, idstr, expendValue, 1)
 	}
 	return nil
