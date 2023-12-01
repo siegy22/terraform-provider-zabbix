@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -91,14 +92,19 @@ func createTemplateObj(d *schema.ResourceData, api *zabbix.API) (*zabbix.Templat
 		UserMacros:      createZabbixMacro(d),
 		LinkedTemplates: createLinkedTemplate(d),
 	}
-	hostGroupIDs, err := getHostGroups(d, api)
+
+	var groupIds zabbix.HostGroupIDs
+	var err error
+	if api.ServerVersion.GreaterThanOrEqual(version.Must(version.NewVersion("6.2"))) {
+		groupIds, err = getTemplateGroups(d, api)
+	} else {
+		groupIds, err = getHostGroups(d, api)
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	template.Groups = make([]zabbix.HostGroup, len(hostGroupIDs))
-	for i, ID := range hostGroupIDs {
-		template.Groups[i].GroupID = ID.GroupID
-	}
+	template.Groups = groupIds
 	if template.UserMacros == nil {
 		template.UserMacros = zabbix.Macros{}
 	}
@@ -208,23 +214,44 @@ func createTerraformMacro(template zabbix.Template) (map[string]interface{}, err
 }
 
 func createTerraformTemplateGroup(d *schema.ResourceData, api *zabbix.API) ([]string, error) {
-	params := zabbix.Params{
-		"output": "extend",
-		"hostids": []string{
-			d.Id(),
-		},
-	}
+	if api.ServerVersion.GreaterThanOrEqual(version.Must(version.NewVersion("6.2"))) {
+		params := zabbix.Params{
+			"output": "extend",
+			"templateids": []string{
+				d.Id(),
+			},
+		}
+		groups, err := api.TemplateGroupsGet(params)
+		if err != nil {
+			return nil, err
+		}
+		if err != nil {
+			return nil, err
+		}
 
-	groups, err := api.HostGroupsGet(params)
-	if err != nil {
-		return nil, err
-	}
+		groupNames := make([]string, len(groups))
+		for i, g := range groups {
+			groupNames[i] = g.Name
+		}
+		return groupNames, nil
+	} else {
+		params := zabbix.Params{
+			"output": "extend",
+			"hostids": []string{
+				d.Id(),
+			},
+		}
+		groups, err := api.HostGroupsGet(params)
+		if err != nil {
+			return nil, err
+		}
 
-	groupNames := make([]string, len(groups))
-	for i, g := range groups {
-		groupNames[i] = g.Name
+		groupNames := make([]string, len(groups))
+		for i, g := range groups {
+			groupNames[i] = g.Name
+		}
+		return groupNames, nil
 	}
-	return groupNames, nil
 }
 
 func createTerraformLinkedTemplate(template zabbix.Template) []string {
@@ -276,4 +303,58 @@ func updateTemplate(template interface{}, api *zabbix.API) (id string, err error
 	}
 	id = templates[0].TemplateID
 	return
+}
+
+func getTemplateGroups(d *schema.ResourceData, api *zabbix.API) (zabbix.HostGroupIDs, error) {
+	configGroups := d.Get("groups").(*schema.Set)
+	setTemplateGroups := make([]string, configGroups.Len())
+
+	for i, g := range configGroups.List() {
+		setTemplateGroups[i] = g.(string)
+	}
+
+	log.Printf("[DEBUG] Groups %v\n", setTemplateGroups)
+
+	groupParams := zabbix.Params{
+		"output": "extend",
+		"filter": map[string]interface{}{
+			"name": setTemplateGroups,
+		},
+	}
+
+	groups, err := api.TemplateGroupsGet(groupParams)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(groups) < configGroups.Len() {
+		log.Printf("[DEBUG] Not all of the specified groups were found on zabbix server")
+
+		for _, n := range configGroups.List() {
+			found := false
+
+			for _, g := range groups {
+				if n == g.Name {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return nil, fmt.Errorf("template group %s doesnt exist in zabbix server", n)
+			}
+			log.Printf("[DEBUG] %s exists on zabbix server", n)
+		}
+	}
+
+	hostGroups := make(zabbix.HostGroupIDs, len(groups))
+
+	for i, g := range groups {
+		hostGroups[i] = zabbix.HostGroupID{
+			GroupID: g.GroupID,
+		}
+	}
+
+	return hostGroups, nil
 }

@@ -12,7 +12,7 @@ import (
 
 func TestAccZabbixItem_Basic(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 	itemName := fmt.Sprintf("item_%s", strID)
 
@@ -61,13 +61,13 @@ func testAccZabbixItemConfig(groupName, templateName, itemName string) string {
 	return fmt.Sprintf(`
 		data "zabbix_server" "test" {}
 
-		resource "zabbix_host_group" "zabbix" {
+		resource "zabbix_template_group" "zabbix" {
 			name = "%s"
 		}
 
 		resource "zabbix_template" "my_zbx_template" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name %s"
 			description = "description for template %s"
 	  	}
@@ -88,13 +88,13 @@ func testAccZabbixItemUpdate(groupName, templateName, itemName string) string {
 	return fmt.Sprintf(`
 		data "zabbix_server" "test" {}
 
-		resource "zabbix_host_group" "zabbix" {
+		resource "zabbix_template_group" "zabbix" {
 			name = "%s"
 		}
 
 		resource "zabbix_template" "my_zbx_template" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name %s"
 			description = "description for template %s"
 	  	}

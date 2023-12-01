@@ -135,13 +135,13 @@ func testAccZabbixTriggerSimpleConfig(strID string) string {
 		compare_version = "3.4.0"
 	}
 
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		description = "description for template"
 	  }
 
@@ -172,13 +172,13 @@ func testAccZabbixTriggerSimpleConfigUpdate(strID string) string {
 		compare_version = "3.4.0"
 	}
 
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		description = "description for template"
 	  }
 
@@ -207,13 +207,13 @@ func testAccZabbixTriggerOmitEmpty(strID string) string {
 		compare_version = "3.4.0"
 	}
 
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		description = "description for template"
 	  }
 
@@ -241,13 +241,13 @@ func testAccZabbixTriggerMacroConfig(strID string) string {
 		compare_version = "3.4.0"
 	}
 
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		description = "description for template"
 		macro = {
 			MACRO_TRIGGER = "12m",
@@ -282,13 +282,13 @@ func testAccZabbixTriggerMacroConfigUpdate(strID string) string {
 		compare_version = "3.4.0"
 	}
 
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		description = "description for template"
 		macro = {
 			MACRO_TRIGGER = "12m",
@@ -323,13 +323,13 @@ func testAccZabbixTriggerDependencies(strID string) string {
 		compare_version = "3.4.0"
 	}
 
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		description = "description for template"
 	  }
 

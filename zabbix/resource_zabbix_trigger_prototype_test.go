@@ -12,7 +12,7 @@ import (
 
 func TestAccZabbixTriggerPrototype_Basic(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	resource.Test(t, resource.TestCase{
@@ -44,7 +44,7 @@ func TestAccZabbixTriggerPrototype_Basic(t *testing.T) {
 
 func TestAccZabbixTriggerPrototype_BasicDependencies(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	resource.Test(t, resource.TestCase{
@@ -65,7 +65,7 @@ func TestAccZabbixTriggerPrototype_BasicDependencies(t *testing.T) {
 
 func TestAccZabbixTriggerPrototype_ExpressionUpdate(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	resource.Test(t, resource.TestCase{
@@ -127,13 +127,13 @@ func testAccCheckZabbixTriggerPrototypeDestroy(s *terraform.State) error {
 
 func testAccZabbixTriggerPrototypeConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 
@@ -175,13 +175,13 @@ func testAccZabbixTriggerPrototypeConfig(groupName, templateName string) string 
 
 func testAccZabbixTriggerPrototypeUpdateConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 
@@ -223,13 +223,13 @@ func testAccZabbixTriggerPrototypeUpdateConfig(groupName, templateName string) s
 
 func testAccZabbixTriggerPrototypeDependenciesConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 
@@ -279,13 +279,13 @@ func testAccZabbixTriggerPrototypeDependenciesConfig(groupName, templateName str
 
 func testAccZabbixTriggerPrototypeUpdateKeyConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s_update"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 
@@ -326,13 +326,13 @@ func testAccZabbixTriggerPrototypeUpdateKeyConfig(groupName, templateName string
 
 func testAccZabbixTriggerPrototypeUpdateKeyConfig2(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s_update"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 

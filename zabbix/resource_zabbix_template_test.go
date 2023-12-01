@@ -149,13 +149,13 @@ func testAccCheckZabbixTemplateDestroy(s *terraform.State) error {
 
 func testAccZabbixTemplateSimpleConfig(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		name = "template_%s"
 		description = "test_template_description"
 		macro = {
@@ -168,13 +168,13 @@ func testAccZabbixTemplateSimpleConfig(strID string) string {
 
 func testAccZabbixTemplateSimpleUpdate(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "update_template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		name = "update_template_%s"
 		description = "update_test_template_description"
 		macro = {
@@ -187,18 +187,18 @@ func testAccZabbixTemplateSimpleUpdate(strID string) string {
 
 func testAccZabbixTemplateLinkedTemplate(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test_1" {
 		host = "template_%s_1"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 	}
 
 	resource "zabbix_template" "template_test_2" {
 		host = "template_%s_2"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		linked_template = ["${zabbix_template.template_test_1.id}"]
 	}
 	`, strID, strID, strID)
@@ -206,18 +206,18 @@ func testAccZabbixTemplateLinkedTemplate(strID string) string {
 
 func testAccZabbixTemplateLinkedTemplateDelete(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test_1" {
 		host = "template_%s_1"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 	}
 
 	resource "zabbix_template" "template_test_2" {
 		host = "template_%s_2"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		linked_template = []
 	}
 	`, strID, strID, strID)
@@ -225,13 +225,13 @@ func testAccZabbixTemplateLinkedTemplateDelete(strID string) string {
 
 func testAccZabbixTemplateUserMacro(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		macro = {
 			MYMACRO1 = "value1"
 		}
@@ -241,13 +241,13 @@ func testAccZabbixTemplateUserMacro(strID string) string {
 
 func testAccZabbixTemplateUserMacroAdd(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		macro = {
 			MYMACRO1 = "value1"
 			MYMACRO2 = "value2"
@@ -258,13 +258,13 @@ func testAccZabbixTemplateUserMacroAdd(strID string) string {
 
 func testAccZabbixTemplateUserMacroUpdate(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 		macro = {
 			MYMACRO1 = "value3"
 			MYMACRO3 = "value2"
@@ -275,13 +275,13 @@ func testAccZabbixTemplateUserMacroUpdate(strID string) string {
 
 func testAccZabbixTemplateUserMacroDelete(strID string) string {
 	return fmt.Sprintf(`
-	resource "zabbix_host_group" "host_group_test" {
-		name = "host_group_%s"
+	resource "zabbix_template_group" "template_group_test" {
+		name = "template_group_%s"
 	}
 
 	resource "zabbix_template" "template_test" {
 		host = "template_%s"
-		groups = ["${zabbix_host_group.host_group_test.name}"]
+		groups = ["${zabbix_template_group.template_group_test.name}"]
 	}
 	`, strID, strID)
 }

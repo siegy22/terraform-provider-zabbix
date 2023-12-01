@@ -58,6 +58,7 @@ func TestAccZabbixHost_Templates(t *testing.T) {
 	host := fmt.Sprintf("host_%s", randName)
 	name := fmt.Sprintf("name_%s", randName)
 	hostGroup := fmt.Sprintf("host_group_%s", randName)
+	templateGroup := fmt.Sprintf("template_group_%s", randName)
 	parentTemplate := fmt.Sprintf("template_%s", randName)
 	expectedHost := zabbix.Host{
 		Host:       host,
@@ -73,7 +74,7 @@ func TestAccZabbixHost_Templates(t *testing.T) {
 		CheckDestroy: testAccCheckZabbixHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccZabbixHostTemplatesConfig(host, name, hostGroup, parentTemplate),
+				Config: testAccZabbixHostTemplatesConfig(host, name, hostGroup, templateGroup, parentTemplate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckZabbixHostExists("zabbix_host.zabbix1", &getHost),
 					testAccCheckZabbixHostAttributes(&getHost, expectedHost, []string{hostGroup}),
@@ -139,7 +140,7 @@ func testAccZabbixHostUpdateConfig(host string, name string, hostGroup string) s
 	)
 }
 
-func testAccZabbixHostTemplatesConfig(host string, name string, hostGroup string, parentTemplate string) string {
+func testAccZabbixHostTemplatesConfig(host string, name string, hostGroup string, templateGroup string, parentTemplate string) string {
 	return fmt.Sprintf(`
 	  	resource "zabbix_host" "zabbix1" {
 			host = "%s"
@@ -159,15 +160,19 @@ func testAccZabbixHostTemplatesConfig(host string, name string, hostGroup string
 			name = "%s"
 	  	}
 
+	  	resource "zabbix_template_group" "zabbix" {
+			name = "%s"
+	  	}
+
 		resource "zabbix_template" "zabbix" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			description = "test_template_description"
 			macro = {
 			  MACRO1 = "value1"
 			  MACRO2 = "value2"
 			}
-		}`, host, name, hostGroup, parentTemplate,
+		}`, host, name, hostGroup, templateGroup, parentTemplate,
 	)
 }
 

@@ -12,7 +12,7 @@ import (
 
 func TestAccZabbixLLDRule_Basic(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	resource.Test(t, resource.TestCase{
@@ -76,13 +76,13 @@ func testAccCheckZabbixLLDRuleDestroy(s *terraform.State) error {
 
 func testAccZabbixLLDRuleConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 
@@ -107,13 +107,13 @@ func testAccZabbixLLDRuleConfig(groupName, templateName string) string {
 
 func testAccZabbixLLDRuleUpdateConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 

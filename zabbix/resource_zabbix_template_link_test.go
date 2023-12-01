@@ -13,7 +13,7 @@ import (
 
 func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	resource.Test(t, resource.TestCase{
@@ -63,7 +63,7 @@ func TestAccZabbixTemplateLink_Basic(t *testing.T) {
 
 func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	var template zabbix.Template
@@ -106,7 +106,7 @@ func TestAccZabbixTemplateLink_DeleteServerItem(t *testing.T) {
 
 func TestAccZabbixTemplateLink_DeleteServerTrigger(t *testing.T) {
 	strID := acctest.RandString(5)
-	groupName := fmt.Sprintf("host_group_%s", strID)
+	groupName := fmt.Sprintf("template_group_%s", strID)
 	templateName := fmt.Sprintf("template_%s", strID)
 
 	var template zabbix.Template
@@ -154,13 +154,13 @@ func testAccZabbixTemplateLinkConfig(groupName, templateName string) string {
 	return fmt.Sprintf(`
 		data "zabbix_server" "test" {}
 
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = [ zabbix_host_group.zabbix.name ]
+			groups = [ zabbix_template_group.zabbix.name ]
 			name = "display name for template test %s"
 	  	}
 
@@ -193,13 +193,13 @@ func testAccZabbixTemplateLinkConfig(groupName, templateName string) string {
 
 func testAccZabbixTemplateLinkDeleteTrigger(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 	  	}
 
@@ -221,13 +221,13 @@ func testAccZabbixTemplateLinkDeleteTrigger(groupName, templateName string) stri
 
 func testAccZabbixTemplateLinkDeleteItem(groupName, templateName string) string {
 	return fmt.Sprintf(`
-		resource "zabbix_host_group" "zabbix" {
-			name = "host group test %s"
+		resource "zabbix_template_group" "zabbix" {
+			name = "template group test %s"
 		}
 
 		resource "zabbix_template" "template_test" {
 			host = "%s"
-			groups = ["${zabbix_host_group.zabbix.name}"]
+			groups = ["${zabbix_template_group.zabbix.name}"]
 			name = "display name for template test %s"
 		  }
 
