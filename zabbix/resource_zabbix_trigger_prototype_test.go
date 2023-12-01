@@ -158,7 +158,7 @@ func testAccZabbixTriggerPrototypeConfig(groupName, templateName string) string 
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key"
+			key = "test.key[{#TESTMACRO}]"
 			name = "item_prototype_test"
 			type = 0
 			status = 0
@@ -206,7 +206,7 @@ func testAccZabbixTriggerPrototypeUpdateConfig(groupName, templateName string) s
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key"
+			key = "test.key[{#TESTMACRO}]"
 			name = "item_prototype_test"
 			type = 0
 			status = 0
@@ -254,7 +254,7 @@ func testAccZabbixTriggerPrototypeDependenciesConfig(groupName, templateName str
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key"
+			key = "test.key[{#TESTMACRO}]"
 			name = "item_prototype_test"
 			type = 0
 			status = 0
@@ -310,7 +310,7 @@ func testAccZabbixTriggerPrototypeUpdateKeyConfig(groupName, templateName string
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key"
+			key = "test.key[{#TESTMACRO}]"
 			name = "item_prototype_test"
 			type = 0
 			status = 0
@@ -357,7 +357,7 @@ func testAccZabbixTriggerPrototypeUpdateKeyConfig2(groupName, templateName strin
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key.update"
+			key = "test.key.update[{#TESTMACRO}]"
 			name = "item_prototype_test"
 			type = 0
 			status = 0

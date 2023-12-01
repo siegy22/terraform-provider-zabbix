@@ -25,7 +25,7 @@ func TestAccZabbixItemPrototype_Basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "delay", "60"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "interface_id", "0"),
-					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "key", "test.key"),
+					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "key", "test.key[{#TESTMACRO}]"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "name", "item_prototype_test"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "type", "0"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "status", "0"),
@@ -36,7 +36,7 @@ func TestAccZabbixItemPrototype_Basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "delay", "90"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "interface_id", "0"),
-					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "key", "test.key.update"),
+					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "key", "test.key.update[{#TESTMACRO}]"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "name", "item_prototype_test_update"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "type", "0"),
 					resource.TestCheckResourceAttr("zabbix_item_prototype.item_prototype_test", "status", "1"),
@@ -100,7 +100,7 @@ func testAccZabbixItemPrototypeConfig(groupName, templateName string) string {
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key"
+			key = "test.key[{#TESTMACRO}]"
 			name = "item_prototype_test"
 			type = 0
 			status = 0
@@ -141,7 +141,7 @@ func testAccZabbixItemPrototypeUpdateConfig(groupName, templateName string) stri
 			host_id  = zabbix_template.template_test.id
 			rule_id = zabbix_lld_rule.lld_rule_test.id
 			interface_id = "0"
-			key = "test.key.update"
+			key = "test.key.update[{#TESTMACRO}]"
 			name = "item_prototype_test_update"
 			type = 0
 			status = 1
