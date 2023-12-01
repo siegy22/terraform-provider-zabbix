@@ -223,6 +223,9 @@ func resourceZabbixItemPrototypeUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	item.ItemID = d.Id()
+	// Read-only when updated
+	item.HostID = ""
+	item.RuleID = ""
 	log.Printf("[DEBUG] Update item prototype %#v", item)
 	return createRetry(d, meta, updateItemPrototype, *item, resourceZabbixItemPrototypeRead)
 }

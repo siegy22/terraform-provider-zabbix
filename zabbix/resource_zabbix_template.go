@@ -71,12 +71,12 @@ func createZabbixMacro(d *schema.ResourceData) zabbix.Macros {
 	return macros
 }
 
-func createLinkedTemplate(d *schema.ResourceData) zabbix.Templates {
-	var templates zabbix.Templates
+func createLinkedTemplate(d *schema.ResourceData) zabbix.TemplateIDs {
+	var templates zabbix.TemplateIDs
 
 	terraformTemplates := d.Get("linked_template").(*schema.Set)
 	for _, terraformTemplate := range terraformTemplates.List() {
-		zabbixTemplate := zabbix.Template{
+		zabbixTemplate := zabbix.TemplateID{
 			TemplateID: terraformTemplate.(string),
 		}
 		templates = append(templates, zabbixTemplate)
@@ -263,11 +263,11 @@ func createTerraformLinkedTemplate(template zabbix.Template) []string {
 	return terraformTemplates
 }
 
-func getUnlinkedTemplate(d *schema.ResourceData) zabbix.Templates {
+func getUnlinkedTemplate(d *schema.ResourceData) zabbix.TemplateIDs {
 	before, after := d.GetChange("linked_template")
 	beforeID := before.(*schema.Set).List()
 	afterID := after.(*schema.Set).List()
-	var unlinkID zabbix.Templates
+	var unlinkID zabbix.TemplateIDs
 
 	for _, l := range beforeID {
 		present := false
@@ -277,7 +277,7 @@ func getUnlinkedTemplate(d *schema.ResourceData) zabbix.Templates {
 			}
 		}
 		if !present {
-			unlinkID = append(unlinkID, zabbix.Template{TemplateID: l.(string)})
+			unlinkID = append(unlinkID, zabbix.TemplateID{TemplateID: l.(string)})
 		}
 	}
 	return unlinkID

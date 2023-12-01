@@ -131,9 +131,9 @@ func resourceZabbixTriggerPrototypeDelete(d *schema.ResourceData, meta interface
 	return deleteRetry(d.Id(), getTriggerPrototypeParentID, api.TriggerPrototypesDeleteIDs, api)
 }
 
-func createTriggerPrototypeDependencies(d *schema.ResourceData) zabbix.TriggerPrototypes {
+func createTriggerPrototypeDependencies(d *schema.ResourceData) zabbix.TriggerPrototypeIDs {
 	size := d.Get("dependencies.#").(int)
-	dependencies := make(zabbix.TriggerPrototypes, size)
+	dependencies := make(zabbix.TriggerPrototypeIDs, size)
 
 	terraformDependencies := d.Get("dependencies").(*schema.Set)
 	for i, terraformDependencie := range terraformDependencies.List() {

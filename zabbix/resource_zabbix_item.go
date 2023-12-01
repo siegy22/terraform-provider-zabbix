@@ -192,6 +192,8 @@ func resourceZabbixItemUpdate(d *schema.ResourceData, meta interface{}) error {
 	item := createItemObject(d)
 
 	item.ItemID = d.Id()
+	// Read-only when updated
+	item.HostID = ""
 	return createRetry(d, meta, updateItem, *item, resourceZabbixItemRead)
 
 }

@@ -139,9 +139,9 @@ func resourceZabbixTriggerDelete(d *schema.ResourceData, meta interface{}) error
 	return deleteRetry(d.Id(), getTriggerParentID, api.TriggersDeleteIDs, api)
 }
 
-func createTriggerDependencies(d *schema.ResourceData) zabbix.Triggers {
+func createTriggerDependencies(d *schema.ResourceData) zabbix.TriggerIDs {
 	size := d.Get("dependencies.#").(int)
-	dependencies := make(zabbix.Triggers, size)
+	dependencies := make(zabbix.TriggerIDs, size)
 
 	terraformDependencies := d.Get("dependencies").(*schema.Set)
 	for i, terraformDependencie := range terraformDependencies.List() {
