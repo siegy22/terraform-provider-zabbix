@@ -42,6 +42,7 @@ func Provider() *schema.Provider {
 			"zabbix_item":              resourceZabbixItem(),
 			"zabbix_trigger":           resourceZabbixTrigger(),
 			"zabbix_template":          resourceZabbixTemplate(),
+			"zabbix_template_group":    resourceZabbixTemplateGroup(),
 			"zabbix_template_link":     resourceZabbixTemplateLink(),
 			"zabbix_lld_rule":          resourceZabbixLLDRule(),
 			"zabbix_item_prototype":    resourceZabbixItemPrototype(),
