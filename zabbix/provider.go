@@ -65,7 +65,10 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
-	api := zabbix.NewAPI(d.Get("server_url").(string))
+	api, err := zabbix.NewAPI(d.Get("server_url").(string))
+	if err != nil {
+		return nil, err
+	}
 
 	api.UserAgent = fmt.Sprintf("HashiCorp/1.0 Terraform/%s", terraformVersion)
 
