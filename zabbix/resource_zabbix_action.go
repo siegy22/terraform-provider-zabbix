@@ -680,7 +680,10 @@ func createActionObject(d *schema.ResourceData, api *zabbix.API) (*zabbix.Action
 		status = zabbix.Enabled
 	}
 
-	ope, err := createActionOperationObject(d.Id(), d.Get("operation").([]interface{}), api)
+	eventSource := StringEventTypeMap[d.Get("event_source").(string)]
+	supportEscalation := eventSource == zabbix.TriggerEvent || eventSource == zabbix.InternalEvent
+
+	ope, err := createActionOperationObject(d.Id(), supportEscalation, d.Get("operation").([]interface{}), api)
 	if err != nil {
 		return nil, err
 	}
@@ -695,11 +698,14 @@ func createActionObject(d *schema.ResourceData, api *zabbix.API) (*zabbix.Action
 		return nil, err
 	}
 
-	eventSource := StringEventTypeMap[d.Get("event_source").(string)]
+	var period string
+	if supportEscalation {
+		period = d.Get("default_step_duration").(string)
+	}
 
 	action := zabbix.Action{
 		ActionID:        d.Id(),
-		Period:          d.Get("default_step_duration").(string),
+		Period:          period,
 		EventSource:     eventSource,
 		Name:            d.Get("name").(string),
 		DefaultMessage:  d.Get("default_message").(string),
@@ -748,7 +754,7 @@ func createActionConditionObject(lst []interface{}) (items zabbix.ActionFilterCo
 	return
 }
 
-func createActionOperationObject(id string, lst []interface{}, api *zabbix.API) (items zabbix.ActionOperations, err error) {
+func createActionOperationObject(id string, supportEscalation bool, lst []interface{}, api *zabbix.API) (items zabbix.ActionOperations, err error) {
 	for _, v := range lst {
 		m := v.(map[string]interface{})
 		opeId := m["operation_id"].(string)
@@ -781,13 +787,21 @@ func createActionOperationObject(id string, lst []interface{}, api *zabbix.API) 
 			}
 		}
 
+		var period string
+		var stepFrom, stepTo int
+		if supportEscalation {
+			period = m["step_duration"].(string)
+			stepFrom = m["step_from"].(int)
+			stepTo = m["step_to"].(int)
+		}
+
 		item := zabbix.ActionOperation{
 			OperationID:       opeId,
 			OperationType:     StringActionOperationTypeMap[m["type"].(string)],
 			ActionID:          id,
-			Period:            m["step_duration"].(string),
-			StepFrom:          m["step_from"].(int),
-			StepTo:            m["step_to"].(int),
+			Period:            period,
+			StepFrom:          stepFrom,
+			StepTo:            stepTo,
 			Command:           cmd,
 			CommandHostGroups: cmdHostGroups,
 			CommandHosts:      cmdHosts,
@@ -920,7 +934,7 @@ func createActionOperationCommand(id string, lst []interface{}, api *zabbix.API)
 	groupMap := map[string]string{}
 	if len(groupNames) > 0 {
 		params := zabbix.Params{
-			"output": []string{"name"},
+			"output": []string{"name", "groupid"},
 			"filter": map[string]interface{}{
 				"name": groupNames,
 			},
@@ -938,7 +952,7 @@ func createActionOperationCommand(id string, lst []interface{}, api *zabbix.API)
 	hostMap := map[string]string{}
 	if len(hostNames) > 0 {
 		params := zabbix.Params{
-			"output": []string{"host"},
+			"output": []string{"host", "hostid"},
 			"filter": map[string]interface{}{
 				"host": hostNames,
 			},
@@ -990,7 +1004,7 @@ func createActionOperationHostGroups(id string, lst []interface{}, api *zabbix.A
 	}
 
 	params := zabbix.Params{
-		"output": []string{},
+		"output": []string{"groupid"},
 		"filter": map[string]interface{}{
 			"name": groupNames,
 		},
@@ -1049,7 +1063,7 @@ func createActionOperationMessage(id string, lst []interface{}, api *zabbix.API)
 
 	if len(groupNames) > 0 {
 		params := zabbix.Params{
-			"output": []string{},
+			"output": []string{"usrgrpid"},
 			"filter": map[string]interface{}{
 				"name": groupNames,
 			},
@@ -1069,7 +1083,7 @@ func createActionOperationMessage(id string, lst []interface{}, api *zabbix.API)
 
 	if len(userNames) > 0 {
 		params := zabbix.Params{
-			"output": []string{},
+			"output": []string{"userid"},
 			"filter": map[string]interface{}{
 				"alias":    userNames,
 				"username": userNames,
@@ -1104,7 +1118,7 @@ func createActionOperationTemplates(id string, lst []interface{}, api *zabbix.AP
 	}
 
 	params := zabbix.Params{
-		"output": []string{},
+		"output": []string{"templateid"},
 		"filter": map[string]interface{}{
 			"host": templateNames,
 		},
@@ -1345,7 +1359,7 @@ func readActionOperationCommandTargets(
 		}
 		params := zabbix.Params{
 			"groupids": groupIds,
-			"output":   []string{"name"},
+			"output":   []string{"name", "groupid"},
 		}
 		res, err := api.HostGroupsGet(params)
 		if err != nil {
@@ -1373,7 +1387,7 @@ func readActionOperationCommandTargets(
 		}
 		params := zabbix.Params{
 			"hostids": hostIds,
-			"output":  []string{"host"},
+			"output":  []string{"host", "hostid"},
 		}
 		res, err := api.HostsGet(params)
 		if err != nil {
