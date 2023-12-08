@@ -370,6 +370,9 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	if len(hosts) != 1 {
+		return fmt.Errorf("Expected one host with id %s and got %d hosts", d.Id(), len(hosts))
+	}
 	host := hosts[0]
 	log.Printf("[DEBUG] Host name is %s", host.Name)
 
