@@ -42,7 +42,7 @@ var interfaceSchema *schema.Resource = &schema.Resource{
 		"port": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  "10050",
+			Default:  "161",
 		},
 		"type": &schema.Schema{
 			Type:     schema.TypeString,
@@ -52,6 +52,24 @@ var interfaceSchema *schema.Resource = &schema.Resource{
 		"interface_id": &schema.Schema{
 			Type:     schema.TypeString,
 			Computed: true,
+		},
+		"details": &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"version": &schema.Schema{
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  2,
+					},
+					"community": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
 		},
 	},
 }
@@ -126,7 +144,7 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 		typeID, ok := HostInterfaceTypes[interfaceType]
 
 		if !ok {
-			return nil, fmt.Errorf("%s isnt valid interface type", interfaceType)
+			return nil, fmt.Errorf("%s isn't a valid interface type", interfaceType)
 		}
 
 		interfaceId := d.Get(prefix + "interface_id").(string)
@@ -134,19 +152,30 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 		dns := d.Get(prefix + "dns").(string)
 
 		if ip == "" && dns == "" {
-			return nil, errors.New("Atleast one of two dns or ip must be set")
+			return nil, errors.New("At least one of dns or ip must be set")
 		}
 
 		useip := 1
-
 		if ip == "" {
 			useip = 0
 		}
 
 		main := 1
-
 		if !d.Get(prefix + "main").(bool) {
 			main = 0
+		}
+
+		detailsList := d.Get(prefix + "details").([]interface{})
+		details := zabbix.InterfaceDetails{}
+
+		if len(detailsList) > 0 {
+			detailMap := detailsList[0].(map[string]interface{})
+			if version, ok := detailMap["version"].(int); ok {
+				details.Version = version
+			}
+			if community, ok := detailMap["community"].(string); ok {
+				details.Community = community
+			}
 		}
 
 		interfaces[i] = zabbix.HostInterface{
@@ -157,6 +186,7 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 			Port:        d.Get(prefix + "port").(string),
 			Type:        typeID,
 			UseIP:       useip,
+			Details:     details,
 		}
 	}
 
@@ -327,6 +357,11 @@ func createHostObj(d *schema.ResourceData, api *zabbix.API) (*zabbix.Host, error
 
 	host.UserMacros = getHostMacro(d)
 
+	// Ensure macros is not null
+	if host.UserMacros == nil {
+		host.UserMacros = zabbix.Macros{}
+	}
+
 	return &host, nil
 }
 
@@ -392,6 +427,7 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 			"main":         ifa.Main == 1,
 			"port":         ifa.Port,
 			"type":         HostInterfaceTypeStrings[ifa.Type],
+			"details":      ifa.Details,
 		}
 	}
 
