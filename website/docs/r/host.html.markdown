@@ -12,7 +12,7 @@ An [host](https://www.zabbix.com/documentation/current/manual/api/reference/host
 
 ## Example Usage
 
-Create a new host
+Create a new host (agent-based)
 
 ```hcl
 resource "zabbix_host_group" "demo_group" {
@@ -26,8 +26,31 @@ resource "zabbix_host" "demo_host" {
     ip = "127.0.0.1"
     main = true
   }
-  groups = ["Linux servers", "${zabbix_host_group.demo_group.name}"]
+  groups = ["Linux servers", zabbix_host_group.demo_group.name]
   templates = ["Template ICMP Ping"]
+}
+```
+
+Create a new SNMP host
+
+```hcl
+resource "zabbix_host" "demo_host" {
+  host      = "cisco-switch1"
+  name      = "Cisco Switch one"
+  groups    = ["Network devices"]
+  templates = ["Cisco IOS by SNMP"]
+
+  interfaces {
+    ip   = "10.0.0.123"
+    type = "snmp"
+    port = 161
+    main = true
+
+    details {
+      version   = 2
+      community = "my_cisco_community"
+    }
+  }
 }
 ```
 
@@ -44,6 +67,9 @@ The following arguments are supported:
   * `ip` - (Optional) Interface IP address
   * `port` - (Optional) TCP/UDP port number of agent. Default is `10050`.
   * `type` - (Optional) Interface type. Can be `agent` (default), `snmp`, `ipmi`, `jmx`.
+  * `details` - (Required if type is `snmp`) SNMP details
+    * `version` - (Optional) SNMP version. Default is `2`
+    * `community` - (Optional) SNMP community.
 * `groups` - (Optional) List of host group names the host belongs to.
 * `templates` - (Optional) List of template names to link to the host.
 
