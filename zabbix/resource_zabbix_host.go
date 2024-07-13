@@ -42,7 +42,7 @@ var interfaceSchema *schema.Resource = &schema.Resource{
 		"port": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  "161",
+			Default:  "10050",
 		},
 		"type": &schema.Schema{
 			Type:     schema.TypeString,
@@ -109,7 +109,7 @@ func resourceZabbixHost() *schema.Resource {
 			"interfaces": &schema.Schema{
 				Type:     schema.TypeList,
 				Elem:     interfaceSchema,
-				Required: true,
+				Optional: true,
 			},
 			"groups": &schema.Schema{
 				Type:     schema.TypeSet,
@@ -132,8 +132,10 @@ func resourceZabbixHost() *schema.Resource {
 }
 
 func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
+	if d.Get("interfaces") == nil {
+		return nil, nil
+	}
 	interfaceCount := d.Get("interfaces.#").(int)
-
 	interfaces := make(zabbix.HostInterfaces, interfaceCount)
 
 	for i := 0; i < interfaceCount; i++ {
@@ -142,7 +144,6 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 		interfaceType := d.Get(prefix + "type").(string)
 
 		typeID, ok := HostInterfaceTypes[interfaceType]
-
 		if !ok {
 			return nil, fmt.Errorf("%s isn't a valid interface type", interfaceType)
 		}
@@ -420,6 +421,14 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 	interfaces := make([]map[string]interface{}, len(host.Interfaces))
 
 	for i, ifa := range host.Interfaces {
+		details := make([]map[string]interface{}, 0)
+		if (ifa.Details != zabbix.InterfaceDetails{}) {
+			details = append(details, map[string]interface{}{
+				"version":   ifa.Details.Version,
+				"community": ifa.Details.Community,
+			})
+		}
+
 		interfaces[i] = map[string]interface{}{
 			"interface_id": ifa.InterfaceID,
 			"dns":          ifa.DNS,
@@ -427,7 +436,7 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 			"main":         ifa.Main == 1,
 			"port":         ifa.Port,
 			"type":         HostInterfaceTypeStrings[ifa.Type],
-			"details":      ifa.Details,
+			"details":      details,
 		}
 	}
 
