@@ -53,7 +53,7 @@ var interfaceSchema *schema.Resource = &schema.Resource{
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"details": &schema.Schema{
+		"details": {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -64,7 +64,48 @@ var interfaceSchema *schema.Resource = &schema.Resource{
 						Optional: true,
 						Default:  2,
 					},
+					"bulk": &schema.Schema{
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  1,
+					},
 					"community": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"max_repetitions": &schema.Schema{
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  10,
+					},
+					"securityname": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"securitylevel": &schema.Schema{
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  0,
+					},
+					"authpassphrase": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"privpassphrase": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"authprotocol": &schema.Schema{
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  0,
+					},
+					"privprotocol": &schema.Schema{
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  0,
+					},
+					"contextname": &schema.Schema{
 						Type:     schema.TypeString,
 						Optional: true,
 					},
@@ -176,6 +217,33 @@ func getInterfaces(d *schema.ResourceData) (zabbix.HostInterfaces, error) {
 			}
 			if community, ok := detailMap["community"].(string); ok {
 				details.Community = community
+			}
+			if bulk, ok := detailMap["bulk"].(int); ok {
+				details.Bulk = bulk
+			}
+			if maxRepetitions, ok := detailMap["max_repetitions"].(int); ok {
+				details.MaxRepetitions = maxRepetitions
+			}
+			if securityName, ok := detailMap["securityname"].(string); ok {
+				details.SecurityName = securityName
+			}
+			if securityLevel, ok := detailMap["securitylevel"].(int); ok {
+				details.SecurityLevel = securityLevel
+			}
+			if authPassphrase, ok := detailMap["authpassphrase"].(string); ok {
+				details.AuthPassphrase = authPassphrase
+			}
+			if privPassphrase, ok := detailMap["privpassphrase"].(string); ok {
+				details.PrivPassphrase = privPassphrase
+			}
+			if authProtocol, ok := detailMap["authprotocol"].(int); ok {
+				details.AuthProtocol = authProtocol
+			}
+			if privProtocol, ok := detailMap["privprotocol"].(int); ok {
+				details.PrivProtocol = privProtocol
+			}
+			if contextName, ok := detailMap["contextname"].(string); ok {
+				details.ContextName = contextName
 			}
 		}
 
@@ -424,8 +492,17 @@ func resourceZabbixHostRead(d *schema.ResourceData, meta interface{}) error {
 		details := make([]map[string]interface{}, 0)
 		if (ifa.Details != zabbix.InterfaceDetails{}) {
 			details = append(details, map[string]interface{}{
-				"version":   ifa.Details.Version,
-				"community": ifa.Details.Community,
+				"version":         ifa.Details.Version,
+				"community":       ifa.Details.Community,
+				"bulk":            ifa.Details.Bulk,
+				"max_repetitions": ifa.Details.MaxRepetitions,
+				"securityname":    ifa.Details.SecurityName,
+				"securitylevel":   ifa.Details.SecurityLevel,
+				"authpassphrase":  ifa.Details.AuthPassphrase,
+				"privpassphrase":  ifa.Details.PrivPassphrase,
+				"authprotocol":    ifa.Details.AuthProtocol,
+				"privprotocol":    ifa.Details.PrivProtocol,
+				"contextname":     ifa.Details.ContextName,
 			})
 		}
 

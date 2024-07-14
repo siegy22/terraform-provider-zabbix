@@ -62,4 +62,4 @@ require (
 	google.golang.org/protobuf v1.32.0 // indirect
 )
 
-replace github.com/claranet/go-zabbix-api => github.com/siegy22/go-zabbix-api v0.0.0-20240713043914-2346aa663007
+replace github.com/claranet/go-zabbix-api => github.com/siegy22/go-zabbix-api v0.0.0-20240713083014-53de5a52d6e3
